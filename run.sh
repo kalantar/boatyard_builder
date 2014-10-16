@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Change to workspace
+cd ${__DATA__}
+
 BREADCRUMB_FILE="docker/breadcrumb"
 BREADCRUMB_IMAGE_KEY="tag"
 
