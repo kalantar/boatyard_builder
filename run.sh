@@ -183,4 +183,6 @@ echo "============"
 #echo "hello world" > docker/my.test
 #echo "goodbye" > docker/my.notatest
 
+echo "{\"image\":\"${IMAGE_TAG}\"}" > $__STATUS__/out
+
 exit 0
