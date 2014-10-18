@@ -25,15 +25,17 @@ cleanup () {
 # If BOATYARD_BUILDER__URL is defined, set IMAGE_BUILDER from it (ie, override IMAGE_BUILDER from ENV).
 # We still allow the command line to override this. 
 if [ -z "${BOATYARD_BUILDER__URL}" ]; then
+  # if not defined; do nothing
 else
-  IMAGE_BUILDER=BOATYARD_BUILDER__URL
+  IMAGE_BUILDER=${BOATYARD_BUILDER__URL}
 fi
 
 # If DOCKER_REGISTRY__IMAGE_PREFIX is defined, set IMAGE_BUILDER from it (ie, override IMAGE_BUILDER from ENV).
 # We still allow the command line to override this. 
 if [ -z "${DOCKER_REGISTRY__IMAGE_PREFIX}" ]; then
+  # if not defined, do nothing
 else
-  REGISTRY=DOCKER_REGISTRY__IMAGE_PREFIX
+  REGISTRY=${DOCKER_REGISTRY__IMAGE_PREFIX}
 fi
 
 #
