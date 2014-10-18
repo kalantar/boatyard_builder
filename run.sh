@@ -22,6 +22,20 @@ cleanup () {
   exit 2
 }
 
+# If BOATYARD_BUILDER__URL is defined, set IMAGE_BUILDER from it (ie, override IMAGE_BUILDER from ENV).
+# We still allow the command line to override this. 
+if [ -z "${BOATYARD_BUILDER__URL}" ]; then
+else
+  IMAGE_BUILDER=BOATYARD_BUILDER__URL
+fi
+
+# If DOCKER_REGISTRY__IMAGE_PREFIX is defined, set IMAGE_BUILDER from it (ie, override IMAGE_BUILDER from ENV).
+# We still allow the command line to override this. 
+if [ -z "${DOCKER_REGISTRY__IMAGE_PREFIX}" ]; then
+else
+  REGISTRY=DOCKER_REGISTRY__IMAGE_PREFIX
+fi
+
 #
 ## Parse input options; may override value provided in properties file
 #
