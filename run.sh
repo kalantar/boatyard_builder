@@ -59,6 +59,18 @@ case ${key} in
     TAR_URL="${1}"
     shift
     ;;
+    --user)
+    REGISTRY_USERNAME="${1}"
+    shift
+    ;;
+    --password)
+    REGISTRY_PASSWORD="${1}"
+    shift
+    ;;
+    --email)
+    REGISTRY_EMAIL="${1}"
+    shift
+    ;;
     -h|--help)
     usage
     exit 0
@@ -75,11 +87,14 @@ done
 
 ## Summarize inputs
 #
-echo TAG           = "${TAG}"
-echo IMAGE_BUILDER = "${IMAGE_BUILDER}"
-echo REGISTRY      = "${REGISTRY}"
-echo TAR_URL       = "${TAR_URL}"
-echo PROJECT_DIR   = "${PROJECT_DIR}"
+echo "              TAG = ${TAG}"
+echo "    IMAGE_BUILDER = ${IMAGE_BUILDER}"
+echo "         REGISTRY = ${REGISTRY}"
+echo "          TAR_URL = ${TAR_URL}"
+echo "      PROJECT_DIR = ${PROJECT_DIR}"
+echo "REGISTRY_USERNAME = ${REGISTRY_USERNAME}"
+echo "REGISTRY_PASSWORD = ${REGISTRY_PASSWORD}"
+echo "   REGISTRY_EMAIL = ${REGISTRY_EMAIL }"
 
 BUILD_API="${IMAGE_BUILDER}/api/v1/build"
 
@@ -128,6 +143,18 @@ printf "  \"image_name\": \"${IMAGE_TAG}\"" >> ${MANIFEST_FILE}
 if [ -n "${TAR_URL}" ]; then
   printf ",\n" >> ${MANIFEST_FILE}
   printf "  \"tar_url\": \"${TAR_URL}\"" >> ${MANIFEST_FILE}
+fi
+if [ -n "${REGISTRY_USERNAME}" ]; then
+  printf ",\n" >> ${MANIFEST_FILE}
+  printf "  \"username\": \"${REGISTRY_USERNAME}\"" >> ${MANIFEST_FILE}
+fi
+if [ -n "${REGISTRY_PASSWORD}" ]; then
+  printf ",\n" >> ${MANIFEST_FILE}
+  printf "  \"password\": \"${REGISTRY_PASSWORD}\"" >> ${MANIFEST_FILE}
+fi
+if [ -n "${REGISTRY_EMAIL}" ]; then
+  printf ",\n" >> ${MANIFEST_FILE}
+  printf "  \"email\": \"${REGISTRY_EMAIL}\"" >> ${MANIFEST_FILE}
 fi
 printf "\n" >> ${MANIFEST_FILE}
 printf "}\n" >> ${MANIFEST_FILE}
