@@ -59,6 +59,10 @@ case ${key} in
     TAR_URL="${1}"
     shift
     ;;
+    -d|--dockerdir)
+    DOCKER_DIR="${1}"
+    shift
+    ;;
     --user)
     REGISTRY_USERNAME="${1}"
     shift
@@ -92,9 +96,10 @@ echo "    IMAGE_BUILDER = ${IMAGE_BUILDER}"
 echo "         REGISTRY = ${REGISTRY}"
 echo "          TAR_URL = ${TAR_URL}"
 echo "      PROJECT_DIR = ${PROJECT_DIR}"
+echo "       DOCKER_DIR = ${DOCKER_DIR}"
 echo "REGISTRY_USERNAME = ${REGISTRY_USERNAME}"
 echo "REGISTRY_PASSWORD = ${REGISTRY_PASSWORD}"
-echo "   REGISTRY_EMAIL = ${REGISTRY_EMAIL }"
+echo "   REGISTRY_EMAIL = ${REGISTRY_EMAIL}"
 
 BUILD_API="${IMAGE_BUILDER}/api/v1/build"
 
@@ -131,9 +136,9 @@ IMAGE_TAG=${REGISTRY}/${TAG}:${BUILD_NUMBER}
 #{
 #   "iamge_name": ""
 #   "tar_url": ""   # present only if $TAR_URL is set
-#   "username": ""  # not currently used
-#   "password": ""  # not currently used
-#   "email": ""     # not currently used
+#   "username": ""  # present only if $REGISTRY_USERNAME is set
+#   "password": ""  # present only if $REGISTRY_PASSWORD is set
+#   "email": ""     # present only if $REGISTRY_EMAIL is set
 #}
 MANIFEST_FILE=/tmp/manifest$$.json
 printf "{\n" > ${MANIFEST_FILE}
@@ -162,7 +167,9 @@ printf "}\n" >> ${MANIFEST_FILE}
 # (2) The tgz file, if not already provided
 if [ -z "${TAR_URL}" ]; then
   TAR_FILE=/tmp/project$$.tgz
+  pushd ${DOCKER_DIR}
   tar -cvzf ${TAR_FILE} .
+  popd
 fi
 
 #
