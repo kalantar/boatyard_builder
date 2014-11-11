@@ -126,6 +126,11 @@ echo "Identified Build # ${BUILD_NUMBER}"
 
 # The full image_tag (registry/tag:version)
 IMAGE_TAG=${REGISTRY}/${TAG}:${BUILD_NUMBER}
+
+# Verify DOCKER_DIR is defined
+if [[ -z "${DOCKER_DIR}" ]]; then DOCKER_DIR=.; fi
+echo "Updated DOCKER_DIR=${DOCKER_DIR}"
+
 #
 ## Create build request
 #
