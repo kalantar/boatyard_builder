@@ -24,15 +24,14 @@ cleanup () {
 
 # If BOATYARD_BUILDER__URL is defined, set IMAGE_BUILDER from it (ie, override IMAGE_BUILDER from ENV).
 # We still allow the command line to override this. 
-if [ -n "${BOATYARD_BUILDER__URL}" ]; then
-  IMAGE_BUILDER=${BOATYARD_BUILDER__URL}
-fi
+if [ -n "${BOATYARD_BUILDER__URL}" ]; then IMAGE_BUILDER=${BOATYARD_BUILDER__URL}; fi
 
-# If DOCKER_REGISTRY__IMAGE_PREFIX is defined, set IMAGE_BUILDER from it (ie, override IMAGE_BUILDER from ENV).
+# If DOCKER_REGISTRY__* is defined, set local variables from it (ie, override value defined in ENV).
 # We still allow the command line to override this. 
-if [ -n "${DOCKER_REGISTRY__IMAGE_PREFIX}" ]; then
-  REGISTRY=${DOCKER_REGISTRY__IMAGE_PREFIX}
-fi
+if [ -n "${DOCKER_REGISTRY__IMAGE_PREFIX}" ]; then REGISTRY=${DOCKER_REGISTRY__IMAGE_PREFIX}; fi
+if [ -n "${DOCKER_REGISTRY__USER}" ]; then REGISTRY_USERNAME=${DOCKER_REGISTRY__USER}; fi
+if [ -n "${DOCKER_REGISTRY__PASSWORD}" ]; then REGISTRY_PASSWORD=${DOCKER_REGISTRY__PASSWORD}; fi
+if [ -n "${DOCKER_REGISTRY__EMAIL}" ]; then REGISTRY_EMAIL=${DOCKER_REGISTRY__EMAIL}; fi
 
 #
 ## Parse input options; may override value provided in properties file
@@ -139,7 +138,7 @@ echo "Updated DOCKER_DIR=${DOCKER_DIR}"
 # (1) The manifest file in json; include ${TAR_URL} if provided
 # Example:
 #{
-#   "iamge_name": ""
+#   "image_name": ""
 #   "tar_url": ""   # present only if $TAR_URL is set
 #   "username": ""  # present only if $REGISTRY_USERNAME is set
 #   "password": ""  # present only if $REGISTRY_PASSWORD is set
