@@ -222,6 +222,18 @@ fi
 
 /bin/rm -f ${MANIFEST_FILE}
 
-echo "{\"image\":\"${IMAGE_TAG}\"}" > $__LOG__/out
+# Generate output
+# Recall: IMAGE_TAG=${REGISTRY}/${TAG}:${BUILD_NUMBER}
+read -d '' OUTPUT << EOF
+{
+  "registry":"$REGISTRY",
+  "repository":"$TAG",
+  "tag":"$BUILD_NUMBER",
+  "image":"$IMAGE_TAG"
+}
+EOF
+
+echo $OUTPUT > $__LOG__/out
+# echo "{\"image\":\"${IMAGE_TAG}\"}" > $__LOG__/out
 
 exit 0
