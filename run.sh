@@ -1,8 +1,5 @@
 #!/bin/bash
 
-BREADCRUMB_FILE="docker/breadcrumb"
-BREADCRUMB_IMAGE_KEY="tag"
-
 CURL_OPTIONS="--silent --http1.0"
 
 DEBUG=0
@@ -10,11 +7,11 @@ DEBUG=0
 #
 ## Usage function
 #
-usage () {
+function usage () {
    echo "Usage: `basename $0` (-t|--tag) tag [(-b|--builder) image_builder] [(-r|--registry) registry] [-u|--tar_url] tarball_url] [project_directory]"
 }
 
-cleanup () {
+function cleanup () {
   echo "Error during build"
   exit 2
 }
@@ -206,29 +203,24 @@ if [ ${DEBUG} -eq 0 ]; then
   BUILD_STATUS_QUERY="${IMAGE_BUILDER}/api/v1/${JOB_IDENTIFIER}/status"
   echo "status query: ${BUILD_STATUS_QUERY}"
 
-  BUILD_STATUS=`curl ${CURL_OPTIONS} ${BUILD_STATUS_QUERY} | grep Status | awk '{print $2}' | sed 's/^\"//' | sed 's/\"$//'`
-  echo `date`">> ${STATUS}"
+  #BUILD_STATUS=`curl ${CURL_OPTIONS} ${BUILD_STATUS_QUERY} | grep Status | awk '{print $2}' | sed 's/^\"//' | sed 's/\"$//'`
+  QUERY_STATUS=$(curl ${CURL_OPTIONS} ${BUILD_STATUS_QUERY})
+  echo "Status: ${QUERY_STATUS}"; echo ""
+  BUILD_STATUS=echo ${BUILD_STATUS} | grep Status | awk '{print $2}' | sed 's/^\"//' | sed 's/\"$//'`
+  echo `date`">> ${BUILD_STATUS}"
   if [[ ${BUILD_STATUS} == *Failed* ]]; then cleanup; fi
   until [[ ${BUILD_STATUS} == *Finished* ]]; do
     sleep 30s
-    BUILD_STATUS=`curl ${CURL_OPTIONS} ${BUILD_STATUS_QUERY} | grep Status | awk '{print $2}' | sed 's/^\"//' | sed 's/\"$//'`
+    QUERY_STATUS=$(curl ${CURL_OPTIONS} ${BUILD_STATUS_QUERY})
+    echo "Status: ${QUERY_STATUS}"; echo ""
+    BUILD_STATUS=echo ${BUILD_STATUS} | grep Status | awk '{print $2}' | sed 's/^\"//' | sed 's/\"$//'`
     echo `date`">> ${BUILD_STATUS}"
     if [[ ${BUILD_STATUS} == *Failed* ]]; then cleanup; fi
     if [[ "${BUILD_STATUS}" == "" ]]; then cleanup; fi
   done 
 fi
 
-echo "${BREADCRUMB_IMAGE_KEY}=${IMAGE_TAG}" > ${BREADCRUMB_FILE}
-echo "Wrote ${BREADCRUMB_FILE}:"
-echo "============"
-cat ${BREADCRUMB_FILE}
-echo "============"
-
 /bin/rm -f ${MANIFEST_FILE}
-
-## create a test file for testing
-#echo "hello world" > docker/my.test
-#echo "goodbye" > docker/my.notatest
 
 echo "{\"image\":\"${IMAGE_TAG}\"}" > $__LOG__/out
 
