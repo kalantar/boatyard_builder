@@ -205,15 +205,17 @@ if [ ${DEBUG} -eq 0 ]; then
 
   #BUILD_STATUS=`curl ${CURL_OPTIONS} ${BUILD_STATUS_QUERY} | grep Status | awk '{print $2}' | sed 's/^\"//' | sed 's/\"$//'`
   QUERY_STATUS=$(curl ${CURL_OPTIONS} ${BUILD_STATUS_QUERY})
-  echo "Status: ${QUERY_STATUS}"; echo ""
-  BUILD_STATUS=echo ${BUILD_STATUS} | grep Status | awk '{print $2}' | sed 's/^\"//' | sed 's/\"$//'`
+  echo "Status: ${QUERY_STATUS}"
+  echo ""
+  BUILD_STATUS=$(echo ${QUERY_STATUS} | grep Status | awk '{print $2}' | sed 's/^\"//' | sed 's/\"$//')
   echo `date`">> ${BUILD_STATUS}"
   if [[ ${BUILD_STATUS} == *Failed* ]]; then cleanup; fi
   until [[ ${BUILD_STATUS} == *Finished* ]]; do
     sleep 30s
     QUERY_STATUS=$(curl ${CURL_OPTIONS} ${BUILD_STATUS_QUERY})
-    echo "Status: ${QUERY_STATUS}"; echo ""
-    BUILD_STATUS=echo ${BUILD_STATUS} | grep Status | awk '{print $2}' | sed 's/^\"//' | sed 's/\"$//'`
+    echo "Status: ${QUERY_STATUS}"
+    echo ""
+    BUILD_STATUS=$(echo ${QUERY_STATUS} | grep Status | awk '{print $2}' | sed 's/^\"//' | sed 's/\"$//')
     echo `date`">> ${BUILD_STATUS}"
     if [[ ${BUILD_STATUS} == *Failed* ]]; then cleanup; fi
     if [[ "${BUILD_STATUS}" == "" ]]; then cleanup; fi
