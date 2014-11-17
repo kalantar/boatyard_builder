@@ -16,113 +16,39 @@ function cleanup () {
   exit 2
 }
 
-# If BOATYARD_BUILDER__URL is defined, set IMAGE_BUILDER from it (ie, override IMAGE_BUILDER from ENV).
-# We still allow the command line to override this. 
-if [ -n "${BOATYARD_BUILDER__URL}" ]; then IMAGE_BUILDER=${BOATYARD_BUILDER__URL}; fi
-
-# If DOCKER_REGISTRY__* is defined, set local variables from it (ie, override value defined in ENV).
-# We still allow the command line to override this. 
-if [ -n "${DOCKER_REGISTRY__IMAGE_PREFIX}" ]; then REGISTRY=${DOCKER_REGISTRY__IMAGE_PREFIX}; fi
-if [ -n "${DOCKER_REGISTRY__USER}" ]; then REGISTRY_USERNAME=${DOCKER_REGISTRY__USER}; fi
-if [ -n "${DOCKER_REGISTRY__PASSWORD}" ]; then REGISTRY_PASSWORD=${DOCKER_REGISTRY__PASSWORD}; fi
-if [ -n "${DOCKER_REGISTRY__EMAIL}" ]; then REGISTRY_EMAIL=${DOCKER_REGISTRY__EMAIL}; fi
-
 #
-## Parse input options; may override value provided in properties file
-#
-while [ $# -ge 1 ]
-do
-key="${1}"
-shift
-
-case ${key} in
-    -t|--tag)
-    TAG="${1}"
-    shift
-    ;;
-    -b|--builder)
-    IMAGE_BUILDER="${1}"
-    shift
-    ;;
-    -r|--registry)
-    REGISTRY="${1}"
-    shift
-    ;;
-    -u|--tar_url)
-    TAR_URL="${1}"
-    shift
-    ;;
-    -d|--dockerdir)
-    DOCKER_DIR="${1}"
-    shift
-    ;;
-    --user)
-    REGISTRY_USERNAME="${1}"
-    shift
-    ;;
-    --password)
-    REGISTRY_PASSWORD="${1}"
-    shift
-    ;;
-    --email)
-    REGISTRY_EMAIL="${1}"
-    shift
-    ;;
-    -h|--help)
-    usage
-    exit 0
-    ;;
-    -d|--debug)
-    DEBUG=1
-    ;;
-    *)
-    # assume is project_dir
-    PROJECT_DIR="${key}"
-    ;;
-esac
-done
-
+# All inputs should be in the form of environment variables. In particular, we expect:
 ## Summarize inputs
 #
-echo "              TAG = ${TAG}"
-echo "    IMAGE_BUILDER = ${IMAGE_BUILDER}"
-echo "         REGISTRY = ${REGISTRY}"
-echo "          TAR_URL = ${TAR_URL}"
-echo "      PROJECT_DIR = ${PROJECT_DIR}"
-echo "       DOCKER_DIR = ${DOCKER_DIR}"
-echo "REGISTRY_USERNAME = ${REGISTRY_USERNAME}"
-echo "REGISTRY_PASSWORD = ${REGISTRY_PASSWORD}"
-echo "   REGISTRY_EMAIL = ${REGISTRY_EMAIL}"
-
-BUILD_API="${IMAGE_BUILDER}/api/v1/build"
+echo "                     BUILD_ID = ${BUILD_ID}"
+echo "                          TAG = ${TAG}"
+echo "        BOATYARD_BUILDER__URL = ${BOATYARD_BUILDER__URL}"
+echo "DOCKER_REGISTRY__IMAGE_PREFIX = ${DOCKER_REGISTRY__IMAGE_PREFIX}"
+echo "                      TAR_URL = ${TAR_URL}"
+echo "                  PROJECT_DIR = ${PROJECT_DIR}"
+echo "                   DOCKER_DIR = ${DOCKER_DIR}"
+echo "        DOCKER_REGISTRY__USER = ${DOCKER_REGISTRY__USER}"
+echo "    DOCKER_REGISTRY__PASSWORD = ${DOCKER_REGISTRY__PASSWORD}"
+echo "      DOCKER_REGISTRY__EMAIL = ${DOCKER_REGISTRY__EMAIL}"
 
 ## Validate input
 #
-if [ -z "${TAG}" ]; then
-   usage
-   exit 1
-fi
+if [[ -z "${TAG}" ]]; then usage; exit 1; fi
+if [[ -z "${BOATYARD_BUILDER__URL}" ]]; then usage; exit 1; fi
+if [[ -z "${DOCKER_REGISTRY__IMAGE_PREFIX}" ]]; then usage; exit 1; fi
 
-if [ -z "${IMAGE_BUILDER}" ]; then
-   usage
-   exit 1
-fi
-
-if [ -z "${REGISTRY}" ]; then
-   usage
-   exit 1
-fi
-
-# Identify the (IDS) build number
-BUILD_NUMBER=`echo ${BUILD_URL} | sed 's/.*\/\([0-9]\+\)\/$/\1/'`
-echo "Identified Build # ${BUILD_NUMBER}"
+BUILD_API="${BOATYARD_BUILDER__URL}/api/v1/build"
+echo "Computed BUILD_API=${BUILD_API}"
 
 # The full image_tag (registry/tag:version)
-IMAGE_TAG=${REGISTRY}/${TAG}:${BUILD_NUMBER}
+IMAGE_TAG=${DOCKER_REGISTRY__IMAGE_PREFIX}/${TAG}:${BUILD_ID}
+echo "Computed IMAGE_TAG=${IMAGE_TAG}"
 
 # Verify DOCKER_DIR is defined
-if [[ -z "${DOCKER_DIR}" ]]; then DOCKER_DIR=.; fi
-echo "Updated DOCKER_DIR=${DOCKER_DIR}"
+if [[ -z "${DOCKER_DIR}" ]]; then 
+  DOCKER_DIR=.;
+  echo "Updated DOCKER_DIR=${DOCKER_DIR}"
+fi
 
 #
 ## Create build request
@@ -134,9 +60,9 @@ echo "Updated DOCKER_DIR=${DOCKER_DIR}"
 #{
 #   "image_name": ""
 #   "tar_url": ""   # present only if $TAR_URL is set
-#   "username": ""  # present only if $REGISTRY_USERNAME is set
-#   "password": ""  # present only if $REGISTRY_PASSWORD is set
-#   "email": ""     # present only if $REGISTRY_EMAIL is set
+#   "username": ""  # present only if $DOCKER_REGISTRY__USER is set
+#   "password": ""  # present only if $DOCKER_REGISTRY__PASSWORD is set
+#   "email": ""     # present only if $DOCKER_REGISTRY__EMAIL is set
 #}
 MANIFEST_FILE=/tmp/manifest$$.json
 printf "{\n" > ${MANIFEST_FILE}
@@ -147,17 +73,17 @@ if [ -n "${TAR_URL}" ]; then
   printf ",\n" >> ${MANIFEST_FILE}
   printf "  \"tar_url\": \"${TAR_URL}\"" >> ${MANIFEST_FILE}
 fi
-if [ -n "${REGISTRY_USERNAME}" ]; then
+if [ -n "${DOCKER_REGISTRY__USER}" ]; then
   printf ",\n" >> ${MANIFEST_FILE}
-  printf "  \"username\": \"${REGISTRY_USERNAME}\"" >> ${MANIFEST_FILE}
+  printf "  \"username\": \"${DOCKER_REGISTRY__USER}\"" >> ${MANIFEST_FILE}
 fi
-if [ -n "${REGISTRY_PASSWORD}" ]; then
+if [ -n "${DOCKER_REGISTRY__PASSWORD}" ]; then
   printf ",\n" >> ${MANIFEST_FILE}
-  printf "  \"password\": \"${REGISTRY_PASSWORD}\"" >> ${MANIFEST_FILE}
+  printf "  \"password\": \"${DOCKER_REGISTRY__PASSWORD}\"" >> ${MANIFEST_FILE}
 fi
-if [ -n "${REGISTRY_EMAIL}" ]; then
+if [ -n "${DOCKER_REGISTRY__EMAIL}" ]; then
   printf ",\n" >> ${MANIFEST_FILE}
-  printf "  \"email\": \"${REGISTRY_EMAIL}\"" >> ${MANIFEST_FILE}
+  printf "  \"email\": \"${DOCKER_REGISTRY__EMAIL}\"" >> ${MANIFEST_FILE}
 fi
 printf "\n" >> ${MANIFEST_FILE}
 printf "}\n" >> ${MANIFEST_FILE}
@@ -200,10 +126,9 @@ if [ ${DEBUG} -eq 0 ]; then
    
   # Identify the job identifier and the query for status
   JOB_IDENTIFIER=`echo "$RESULT" | grep JobIdentifier | sed 's/.*: "\(.*\)"/\1/'`
-  BUILD_STATUS_QUERY="${IMAGE_BUILDER}/api/v1/${JOB_IDENTIFIER}/status"
+  BUILD_STATUS_QUERY="${BOATYARD_BUILDER__URL}/api/v1/${JOB_IDENTIFIER}/status"
   echo "status query: ${BUILD_STATUS_QUERY}"
 
-  #BUILD_STATUS=`curl ${CURL_OPTIONS} ${BUILD_STATUS_QUERY} | grep Status | awk '{print $2}' | sed 's/^\"//' | sed 's/\"$//'`
   QUERY_STATUS=$(curl ${CURL_OPTIONS} ${BUILD_STATUS_QUERY})
   echo "Status: ${QUERY_STATUS}"
   BUILD_STATUS=$(echo ${QUERY_STATUS} | grep Status | awk '{print $3}' | sed 's/^\"//' | sed 's/\"$//')
@@ -223,12 +148,12 @@ fi
 /bin/rm -f ${MANIFEST_FILE}
 
 # Generate output
-# Recall: IMAGE_TAG=${REGISTRY}/${TAG}:${BUILD_NUMBER}
+# Recall: IMAGE_TAG=${DOCKER_REGISTRY__IMAGE_PREFIX}/${TAG}:${BUILD_ID}
 read -d '' OUTPUT << EOF
 {
-  "registry":"$REGISTRY",
+  "registry":"$DOCKER_REGISTRY__IMAGE_PREFIX",
   "repository":"$TAG",
-  "tag":"$BUILD_NUMBER",
+  "tag":"$BUILD_ID",
   "image":"$IMAGE_TAG"
 }
 EOF
